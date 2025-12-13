@@ -1,282 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mastermind Game</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f0f0;
-        margin: 0;
-        padding: 0;
-        background: #1A237E;
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mastermind Game</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
     background: radial-gradient(circle at center, #2C387E 0%, #1A237E 70%, #101550 100%);
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 650px;
+    margin: auto;
+    padding: 20px;
+    background: #2C387E;
+    margin-top: 50px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+h1, h2,h3{
+    text-align: center;
+    color: white;
+}
 
-      }
-      .container {
-        max-width: 600px;
-        margin: auto;
-        padding: 20px;
-        background: #2C387E;
-        margin-top: 50px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-      }
-      h1,
-      h2 {
-        text-align: center;
-        color: #FFFFFF;
-      }
-      #levelselect{
-        background-color: #3F51B5;
-        padding: 10px 20px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        color: #FFFFFF;
+p, li {
+    color: #04C3EA;
+}
+button {
+    background-color: aqua;
+    padding: 10px 20px;
+    display: block;
+    margin: 10px auto;
+    cursor: pointer;
+}
+select, input {
+    padding: 8px;
+    width: 80%;
+    margin: 5px auto;
+    display: block;
+}
+.colors span, .peg {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 1px solid black;
+    color: black;
+}
+.attempt {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.feedback {
+    margin-left: 10px;
+    font-weight: bold;
+    color: white;
+}
+.instructions {
+    background: #1A237E;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+</style>
+</head>
 
-      }
-      button {
-        background-color: aqua;
-        padding: 10px 20px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        cursor: pointer;
-      }
-      input {
-        padding: 5px;
-        width: 80%;
-        margin: 5px 0;
-      }
-      .game-board {
-        margin-top: 20px;
-      }
-      .attempt {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-      .peg {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        margin: 2px;
-        border: 1px solid #f6f4f4;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-      }
-      .feedback {
-        margin-left: 10px;
-        font-weight: bold;
-      }
-      .colors {
-        margin: 10px 0;
-      }
-      .colors span {
-        display: inline-block;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        margin: 2px;
-        border: 1px solid #000;
-        color: black;
-        text-align: center;
-        line-height: 30px;
-        font-weight: bold;
-      }
-      p{
-        color: rgb(4, 195, 234);
-      }
-    </style>
-  </head>
-  <body>
-    <div id="page1" class="container">
-      <h1>Mastermind Game</h1>
-      <h2>Select Level</h2>
-      <select id="levelselect">
+<body>
+
+<!-- PAGE 1 -->
+<div id="page1" class="container">
+    <h1>Mastermind Game</h1>
+    <h2>Select Level</h2>
+    <select id="levelselect">
         <option value="1">Level 1 - Easy</option>
         <option value="2">Level 2 - Medium</option>
         <option value="3">Level 3 - Hard</option>
         <option value="4">Level 4 - Insane</option>
-      </select>
-      <br />
-      <button onclick="startGame()">Play</button>
-    </div>
+    </select>
+    <button onclick="startGame()">Play</button>
+</div>
 
-    <div id="page2" class="container" style="display: none">
-      <h1>Mastermind Game</h1>
-      <div class="colors" id="colorList"></div>
-      <p>Total Attempts: <span id="totalAttempts"></span></p>
-      <p>Remaining Attempts: <span id="remainingAttempts"></span></p>
-      <input
-        type="text"
-        id="guessInput"
-        placeholder="Enter your guess in CAPS"
-      />
-      <button onclick="makeGuess()">Submit Guess</button>
+<!-- PAGE 2 -->
+<div id="page2" class="container" style="display:none;">
+    <h1>Mastermind Game</h1>
 
-      <div class="game-board" id="pastAttempts"></div>
-    </div>
+    <!-- Instructions -->
+    <div class="instructions" id="instructions"></div>
 
-    <script>
-      const levels = {
-        1: { colors: ["R", "G", "B", "Y", "P"], length: 4, maxAttempts: 5 },
-        2: {
-          colors: ["R", "G", "B", "Y", "P", "O", "V", "S"],
-          length: 5,
-          maxAttempts: 5,
-        },
-        3: {
-          colors: ["R", "G", "B", "Y", "P", "O", "V", "S", "W", "I", "N"],
-          length: 6,
-          maxAttempts: 8,
-        },
-        4: {
-          colors: [
-            "R",
-            "G",
-            "B",
-            "Y",
-            "P",
-            "O",
-            "V",
-            "S",
-            "W",
-            "I",
-            "C",
-            "M",
-            "L",
-            "T",
-            "N",
-          ],
-          length: 7,
-          maxAttempts: 8,
-        },
-      };
+    <div class="colors" id="colorList"></div>
 
-      let secretCode = [];
-      let attempts = 0;
-      let maxAttempts = 0;
-      let selectedLevel = 1;
+    <p>Total Attempts: <span id="totalAttempts"></span></p>
+    <p>Remaining Attempts: <span id="remainingAttempts"></span></p>
 
-      function startGame() {
-        selectedLevel = parseInt(document.getElementById("levelselect").value);
-        const level = levels[selectedLevel];
-        secretCode = shuffle(level.colors).slice(0, level.length);
-        attempts = 0;
-        maxAttempts = level.maxAttempts;
+    <input type="text" id="guessInput" placeholder="Enter your guess in CAPS">
+    <button onclick="makeGuess()">Submit Guess</button>
 
-        document.getElementById("page1").style.display = "none";
-        document.getElementById("page2").style.display = "block";
+    <div class="game-board" id="pastAttempts"></div>
+</div>
 
-        document.getElementById("totalAttempts").textContent = maxAttempts;
-        document.getElementById("remainingAttempts").textContent = maxAttempts;
+<script>
+const levels = {
+    1: {
+        colors: ["R","G","B","Y","P"],
+        length: 4,
+        maxAttempts: 5,
+        instructions: [
+            "Computer chooses 4 colors from 5",
+            "No color repetition allowed",
+            "Guess the exact order",
+            "You have 5 attempts"
+        ]
+    },
+    2: {
+        colors: ["R","G","B","Y","P","O","V","S"],
+        length: 5,
+        maxAttempts: 5,
+        instructions: [
+            "Computer chooses 5 colors from 8",
+            "No color repetition allowed",
+            "Guess the exact order",
+            "You have 5 attempts"
+        ]
+    },
+    3: {
+        colors: ["R","G","B","Y","P","O","V","S","W","I","N"],
+        length: 6,
+        maxAttempts: 8,
+        instructions: [
+            "Computer chooses 6 colors from 11",
+            "No color repetition allowed",
+            "Guess the exact order",
+            "You have 8 attempts"
+        ]
+    },
+    4: {
+        colors: ["R","G","B","Y","P","O","V","S","W","I","C","M","L","T","N"],
+        length: 7,
+        maxAttempts: 8,
+        instructions: [
+            "Computer chooses 7 colors from 15",
+            "No color repetition allowed",
+            "Guess the exact order",
+            "You have 8 attempts"
+        ]
+    }
+};
 
-        const colorListDiv = document.getElementById("colorList");
-        colorListDiv.innerHTML = "";
-        level.colors.forEach((c) => {
-          const colorSpan = document.createElement("span");
-          colorSpan.textContent = c;
-          colorSpan.style.backgroundColor = getColor(c);
-          colorListDiv.appendChild(colorSpan);
-        });
+let secretCode = [];
+let attempts = 0;
+let maxAttempts = 0;
+let selectedLevel = 1;
 
-        document.getElementById("pastAttempts").innerHTML = "";
-        document.getElementById("guessInput").value = "";
-      }
+function startGame() {
+    selectedLevel = parseInt(document.getElementById("levelselect").value);
+    const level = levels[selectedLevel];
 
-      function makeGuess() {
-        const input = document.getElementById("guessInput").value.toUpperCase();
-        const level = levels[selectedLevel];
+    secretCode = shuffle(level.colors).slice(0, level.length);
+    attempts = 0;
+    maxAttempts = level.maxAttempts;
 
-        if (input.length !== level.length) {
-          alert(`Guess must have exactly ${level.length} letters!`);
-          return;
-        }
-        for (let ch of input) {
-          if (!level.colors.includes(ch)) {
+    document.getElementById("page1").style.display = "none";
+    document.getElementById("page2").style.display = "block";
+
+    document.getElementById("totalAttempts").textContent = maxAttempts;
+    document.getElementById("remainingAttempts").textContent = maxAttempts;
+
+    // Instructions
+    document.getElementById("instructions").innerHTML =
+        "<h3>Instructions</h3><ul>" +
+        level.instructions.map(i => `<li>${i}</li>`).join("") +
+        "</ul>";
+
+    // Color list
+    const colorListDiv = document.getElementById("colorList");
+    colorListDiv.innerHTML = "";
+    level.colors.forEach(c => {
+        const span = document.createElement("span");
+        span.textContent = c;
+        span.style.backgroundColor = getColor(c);
+        colorListDiv.appendChild(span);
+    });
+
+    document.getElementById("pastAttempts").innerHTML = "";
+    document.getElementById("guessInput").value = "";
+}
+
+function makeGuess() {
+    const input = document.getElementById("guessInput").value.toUpperCase();
+    const level = levels[selectedLevel];
+
+    if (input.length !== level.length) {
+        alert(`Enter exactly ${level.length} letters`);
+        return;
+    }
+
+    for (let ch of input) {
+        if (!level.colors.includes(ch)) {
             alert(`Invalid color: ${ch}`);
             return;
-          }
         }
+    }
 
-        attempts++;
-        let feedback = [];
-        for (let i = 0; i < level.length; i++) {
-          if (input[i] === secretCode[i]) feedback.push("X");
-          else feedback.push("O");
-        }
+    attempts++;
+    let feedback = [];
 
-        const pastDiv = document.getElementById("pastAttempts");
-        const attemptDiv = document.createElement("div");
-        attemptDiv.className = "attempt";
+    for (let i = 0; i < level.length; i++) {
+        feedback.push(input[i] === secretCode[i] ? "X" : "O");
+    }
 
-        // Add colored pegs with letters
-        for (let ch of input) {
-          const peg = document.createElement("div");
-          peg.className = "peg";
-          peg.style.backgroundColor = getColor(ch);
-          peg.textContent = ch;
-          attemptDiv.appendChild(peg);
-        }
+    const attemptDiv = document.createElement("div");
+    attemptDiv.className = "attempt";
 
-        // Feedback next to pegs
-        const feedbackSpan = document.createElement("span");
-        feedbackSpan.className = "feedback";
-        feedbackSpan.textContent = feedback.join("");
-        attemptDiv.appendChild(feedbackSpan);
+    for (let ch of input) {
+        const peg = document.createElement("div");
+        peg.className = "peg";
+        peg.style.backgroundColor = getColor(ch);
+        peg.textContent = ch;
+        attemptDiv.appendChild(peg);
+    }
 
-        pastDiv.appendChild(attemptDiv);
+    const fb = document.createElement("span");
+    fb.className = "feedback";
+    fb.textContent = feedback.join("");
+    attemptDiv.appendChild(fb);
 
-        document.getElementById("remainingAttempts").textContent =
-          maxAttempts - attempts;
+    document.getElementById("pastAttempts").appendChild(attemptDiv);
+    document.getElementById("remainingAttempts").textContent = maxAttempts - attempts;
 
-        if (feedback.every((f) => f === "X")) {
-          alert(
-            `Congratulations! You guessed the code: ${secretCode.join("")}`
-          );
-          location.reload();
-        } else if (attempts >= maxAttempts) {
-          alert(`Game Over! The code was: ${secretCode.join("")}`);
-          location.reload();
-        }
+    if (feedback.every(f => f === "X")) {
+        alert("🎉 You guessed the correct code!");
+        location.reload();
+    } else if (attempts >= maxAttempts) {
+        alert(`❌ Game Over! Code was ${secretCode.join("")}`);
+        location.reload();
+    }
 
-        document.getElementById("guessInput").value = "";
-      }
+    document.getElementById("guessInput").value = "";
+}
 
-      function shuffle(array) {
-        let arr = array.slice();
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      }
+function shuffle(arr) {
+    return arr.slice().sort(() => Math.random() - 0.5);
+}
 
-      function getColor(letter) {
-        const colorsMap = {
-          R: "red",
-          G: "green",
-          B: "blue",
-          Y: "yellow",
-          P: "pink",
-          O: "orange",
-          V: "violet",
-          S: "silver",
-          W: "black",
-          I: "indigo",
-          N: "cyan",
-          C: "beige",
-          M: "magenta",
-          L: "lavender",
-          T: "tan",
-        };
-        return colorsMap[letter] || "gray";
-      }
-    </script>
-  </body>
+function getColor(l) {
+    const map = {
+        R:"red", G:"green", B:"blue", Y:"yellow", P:"pink", O:"orange",
+        V:"violet", S:"silver", W:"black", I:"indigo", N:"cyan",
+        C:"beige", M:"magenta", L:"lavender", T:"tan"
+    };
+    return map[l] || "gray";
+}
+</script>
+
+</body>
 </html>
